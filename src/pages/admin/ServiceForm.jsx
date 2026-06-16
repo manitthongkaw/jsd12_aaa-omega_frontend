@@ -105,9 +105,17 @@ export default function AdminServiceForm() {
   };
   const handleServiceItemSubmit = async (event) => {
     event.preventDefault();
-    const updated = await handleServiceSave(serviceForm?._id, prepareServiceDataAtCombined(serviceForm));
-    if (updated) {
-      setServiceForm(prepareServiceDataAtSliced(updated));
+    const payload = prepareServiceDataAtCombined(serviceForm);
+    if (!payload.status) {
+      delete payload.status;
+    }
+    const saved = await handleServiceSave(serviceForm?._id, payload);
+    if (saved) {
+      if (serviceNumber) {
+        setServiceForm(prepareServiceDataAtSliced(saved));
+      } else {
+        navigate(`/admin/services/${saved.serviceNumber}`);
+      };
     };
   };
   const handleServiceItemDelete = async () => {
@@ -130,33 +138,34 @@ export default function AdminServiceForm() {
     const keyword = searchForm.trim().toLowerCase();
     if (!keyword) {setSearchResult([]); return;}
     const result = users.filter((user) => {
-      const fullName = `${user.firstName} ${user.lastName}`.toLowerCase();
+      const fullName = `${user?.firstName} ${user?.lastName}`.toLowerCase();
       return fullName.includes(keyword) ||
-             user.company?.toLowerCase().includes(keyword) ||
-             user.phone?.includes(keyword) ||
-             user.phone2?.includes(keyword) ||
-             user.email?.toLowerCase().includes(keyword);
+             user?.company?.toLowerCase().includes(keyword) ||
+             user?.phone?.includes(keyword) ||
+             user?.phone2?.includes(keyword) ||
+             user?.email?.toLowerCase().includes(keyword);
     });
     setSearchResult(result);
   };
   const handleSelectUser = (user) => {
     setServiceForm((prev) => ({
-      ...prev, customer: {
-        userId: user.userId,
-        firstName: user.firstName || "",
-        lastName: user.lastName || "",
-        company: user.company || "",
-        taxId: user.taxId || "",
-        phone: user.phone || "",
-        phone2: user.phone2 || "",
-        email: user.email || "",
+      ...prev,
+      customer: {
+        userNumber: user?.userNumber,
+        firstName: user?.firstName || "",
+        lastName: user?.lastName || "",
+        company: user?.company || "",
+        taxId: user?.taxId || "",
+        phone: user?.phone || "",
+        phone2: user?.phone2 || "",
+        email: user?.email || "",
         serviceAddress: {
-          label: user.serviceAddress.label || "",
-          addressLine: user.serviceAddress.addressLine || "",
-          subdistrict: user.serviceAddress.subdistrict || "",
-          district: user.serviceAddress.district || "",
-          province: user.serviceAddress.province || "",
-          postcode: user.serviceAddress.postcode || ""
+          label: user?.serviceAddress?.label || "",
+          addressLine: user?.serviceAddress?.addressLine || "",
+          subdistrict: user?.serviceAddress?.subdistrict || "",
+          district: user?.serviceAddress?.district || "",
+          province: user?.serviceAddress?.province || "",
+          postcode: user?.serviceAddress?.postcode || "",
         }
       }
     }));
@@ -205,7 +214,7 @@ export default function AdminServiceForm() {
                 ? <section className="flex flex-wrap gap-5">
                     {searchResult?.map((user) => (
                       <button key={user?._id} type="button" className="card-search-result" onClick={() => handleSelectUser(user)}>
-                        {user?.firstName || user?.lastName &&
+                        {(user?.firstName || user?.lastName) &&
                           <span>{`${user?.firstName} ${user?.lastName}`.trim()}</span>
                         }
                         {user?.company &&
@@ -300,31 +309,31 @@ export default function AdminServiceForm() {
           </>
         }
         <form onSubmit={handleServiceItemSubmit}>
-          {!serviceForm &&
+          {(serviceForm?.customer?.firstName || serviceForm?.customer?.lastName || serviceForm?.customer?.company) &&
             <>
               <div className="input-row">
                 <div className="input-group">
                   <label htmlFor="firstName">ชื่อจริง</label>
-                  <input type="text" id="firstName" name="firstName" value={serviceForm.customer.firstName || ""} onChange={handleServiceItemCustomerChange} placeholder="สมชาย" maxLength="120" required />
+                  <input type="text" id="firstName" name="firstName" value={serviceForm?.customer?.firstName || ""} onChange={handleServiceItemCustomerChange} placeholder="สมชาย" maxLength="120" required />
                 </div>
                 <div className="input-group">
                   <label htmlFor="lastName">นามสกุล</label>
-                  <input type="text" id="lastName" name="lastName" value={serviceForm.customer.lastName || ""} onChange={handleServiceItemCustomerChange} placeholder="ใจดี" maxLength="120" required />
+                  <input type="text" id="lastName" name="lastName" value={serviceForm?.customer?.lastName || ""} onChange={handleServiceItemCustomerChange} placeholder="ใจดี" maxLength="120" required />
                 </div>
               </div>
               <div className="input-row">
                 <div className="input-group">
                   <label htmlFor="email">อีเมล</label>
-                  <input type="email" id="email" name="email" value={serviceForm.customer.email || ""} onChange={handleServiceItemCustomerChange} placeholder="account@email.com" maxLength="120" required />
+                  <input type="email" id="email" name="email" value={serviceForm?.customer?.email || ""} onChange={handleServiceItemCustomerChange} placeholder="account@email.com" maxLength="120" required />
                 </div>
                 <div className="input-group">
                   <label htmlFor="phone">เบอร์ติดต่อ</label>
-                  <input type="tel" id="phone" name="phone" value={serviceForm.customer.phone || ""} onChange={handleServiceItemCustomerChange} placeholder="081-000-0000" minLength="10" maxLength="20" />
+                  <input type="tel" id="phone" name="phone" value={serviceForm?.customer?.phone || ""} onChange={handleServiceItemCustomerChange} placeholder="081-000-0000" minLength="10" maxLength="20" />
                 </div>
                 <div className="input-group">
                   <label htmlFor="phone2">เบอร์ติดต่อ
                     <span className="text-xs text-content-soft">(สำรอง)</span></label>
-                  <input type="tel" id="phone2" name="phone2" value={serviceForm.customer.phone2 || ""} onChange={handleServiceItemCustomerChange} placeholder="099-000-0000" minLength="10" maxLength="20" />
+                  <input type="tel" id="phone2" name="phone2" value={serviceForm?.customer?.phone2 || ""} onChange={handleServiceItemCustomerChange} placeholder="099-000-0000" minLength="10" maxLength="20" />
                 </div>
               </div>
               <hr />
@@ -333,11 +342,11 @@ export default function AdminServiceForm() {
                 <div className="input-row">
                   <div className="input-group">
                     <label htmlFor="company">ชื่อบริษัท</label>
-                    <input type="text" id="company" name="company" value={serviceForm.customer.company || ""} onChange={handleServiceItemCustomerChange} placeholder="ระบุชื่อบริษัท" maxLength="120" />
+                    <input type="text" id="company" name="company" value={serviceForm?.customer?.company || ""} onChange={handleServiceItemCustomerChange} placeholder="ระบุชื่อบริษัท" maxLength="120" />
                   </div>
                   <div className="input-group">
                     <label htmlFor="taxId">เลขประจำตัวผู้เสียภาษีอากร</label>
-                    <input type="text" id="taxId" name="taxId" value={serviceForm.customer.taxId || ""} onChange={handleServiceItemCustomerChange} placeholder="เลขประจำตัวผู้เสียภาษีอากร" maxLength="20" />
+                    <input type="text" id="taxId" name="taxId" value={serviceForm?.customer?.taxId || ""} onChange={handleServiceItemCustomerChange} placeholder="เลขประจำตัวผู้เสียภาษีอากร" maxLength="20" />
                   </div>
                 </div>
               </fieldset>
@@ -347,29 +356,29 @@ export default function AdminServiceForm() {
                 <div className="input-row">
                   <div className="input-group">
                     <label htmlFor="addressLine3">ที่อยู่</label>
-                    <input type="text" id="addressLine3" name="addressLine" value={serviceForm.customer.serviceAddress.addressLine || ""} onChange={handleServiceItemAddressChange} placeholder="ระบุเลขที่บ้าน / หมู่บ้าน" />
+                    <input type="text" id="addressLine3" name="addressLine" value={serviceForm?.customer?.serviceAddress?.addressLine || ""} onChange={handleServiceItemAddressChange} placeholder="ระบุเลขที่บ้าน / หมู่บ้าน" />
                   </div>
                   <div className="input-group">
                     <label htmlFor="subdistrict3">แขวง / ตำบล</label>
-                    <input type="text" id="subdistrict3" name="subdistrict" value={serviceForm.customer.serviceAddress.subdistrict || ""} onChange={handleServiceItemAddressChange} placeholder="ระบุแขวง / ตำบล" />
+                    <input type="text" id="subdistrict3" name="subdistrict" value={serviceForm?.customer?.serviceAddress?.subdistrict || ""} onChange={handleServiceItemAddressChange} placeholder="ระบุแขวง / ตำบล" />
                   </div>
                   <div className="input-group">
                     <label htmlFor="district3">เขต / อำเภอ</label>
-                    <input type="text" id="district3" name="district" value={serviceForm.customer.serviceAddress.district || ""} onChange={handleServiceItemAddressChange} placeholder="ระบุเขต / อำเภอ" />
+                    <input type="text" id="district3" name="district" value={serviceForm?.customer?.serviceAddress?.district || ""} onChange={handleServiceItemAddressChange} placeholder="ระบุเขต / อำเภอ" />
                   </div>
                 </div>
                 <div className="input-row">
                   <div className="input-group">
                     <label htmlFor="province3">จังหวัด</label>
-                    <input type="text" id="province3" name="province" value={serviceForm.customer.serviceAddress.province || ""} onChange={handleServiceItemAddressChange} placeholder="ระบุจังหวัด" />
+                    <input type="text" id="province3" name="province" value={serviceForm?.customer?.serviceAddress?.province || ""} onChange={handleServiceItemAddressChange} placeholder="ระบุจังหวัด" />
                   </div>
                   <div className="input-group">
                     <label htmlFor="postcode3">รหัสไปรษณีย์</label>
-                    <input type="text" id="postcode3" name="postcode" value={serviceForm.customer.serviceAddress.postcode || ""} onChange={handleServiceItemAddressChange} placeholder="ระบุรหัสไปรษณีย์" pattern="[0-9]{5}" maxLength="5" />
+                    <input type="text" id="postcode3" name="postcode" value={serviceForm?.customer?.serviceAddress?.postcode || ""} onChange={handleServiceItemAddressChange} placeholder="ระบุรหัสไปรษณีย์" pattern="[0-9]{5}" maxLength="5" />
                   </div>
                   <div className="input-group">
                     <label htmlFor="label3">ป้ายกำกับ</label>
-                    <input type="text" id="label3" name="label" value={serviceForm.customer.serviceAddress.label || ""} onChange={handleServiceItemAddressChange} placeholder="ระบุป้ายกำกับตามต้องการ" />
+                    <input type="text" id="label3" name="label" value={serviceForm?.customer?.serviceAddress?.label || ""} onChange={handleServiceItemAddressChange} placeholder="ระบุป้ายกำกับตามต้องการ" />
                   </div>
                 </div>
               </fieldset>

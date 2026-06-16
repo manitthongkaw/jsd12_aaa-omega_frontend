@@ -76,6 +76,9 @@ export default function AuthLogin() {
               <p className="text-warning-soft text-sm text-center">{error}</p>
             </div>
           }
+          <div className="input-group">
+            <p className="text-sm text-center text-content-soft">Admin Demo = admin@aaaomega.com / aaaomega</p>
+          </div>
         </form>
         <hr />
         <div className="flex flex-wrap flex-col-reverse 2xs:flex-row justify-center items-center gap-5">
