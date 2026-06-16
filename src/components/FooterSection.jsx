@@ -58,7 +58,7 @@ function FooterSection() {
                 <div className="flex flex-col md:flex-row justify-between items-center gap-4 text-[10px] opacity-40 font-light">
 
                     <p className="text-center md:text-left">
-                        ©AAA Omega Company Limited. All rights reserved.
+                        AAA Omega. เว็บไซต์นี้จัดทำขึ้นเพื่อการศึกษาและใช้เป็นผลงาน (Portfolio) เท่านั้น รูปภาพสินค้าและเครื่องหมายการค้าทั้งหมดเป็นทรัพย์สินของเจ้าของสิทธิ์ที่เกี่ยวข้อง
                     </p>
 
                     <div className="flex flex-wrap md:flex-nowrap justify-center md:justify-end gap-x-4 gap-y-2 lg:gap-x-10 text-center">

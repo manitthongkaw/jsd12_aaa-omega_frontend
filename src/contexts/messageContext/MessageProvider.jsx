@@ -5,7 +5,7 @@ import { MessageContext } from "./MessageContext";
 import { fetchUsers, registerUser, updateUser, deleteUser } from "../../api/admin/user";
 import { fetchProducts, createProduct, updateProduct, deleteProduct } from "../../api/admin/product";
 import { fetchOrders, updateOrderStatus, updateOrderInternalNote, deleteOrder } from "../../api/admin/order";
-import { fetchServices, updateService, updateServiceStatus, deleteService } from "../../api/admin/service";
+import { fetchServices, createService, updateService, updateServiceStatus, deleteService } from "../../api/admin/service";
 
 export const MessageProvider = ({children}) => {
 
@@ -38,6 +38,17 @@ export const MessageProvider = ({children}) => {
       };
     };
   }, []);
+
+  /*
+  const [confirmModal, setConfirmModal] = useState({ open: false, title: "", message: "", onConfirm: null });
+  const showConfirm = ({ title = "ยืนยันการดำเนินการ", message = "", onConfirm,
+  }) => {
+    setConfirmModal({ open: true, title, message, onConfirm });
+  };
+  const closeConfirm = () => {
+    setConfirmModal({ open: false, title: "", message: "", onConfirm: null });
+  };
+  */
 
   const [users, setUsers] = useState([]);
   useEffect(() => {
@@ -164,14 +175,18 @@ export const MessageProvider = ({children}) => {
   const handleServiceSave = async (id, data) => {
     try {
       showToast("กำลังบันทึกข้อมูลบริการ...");
-      const updated = await updateService(id, data);
-      if (updated) {
-        setServices((prev) => prev?.map(item => item?._id === id ? { ...item, ...updated } : item ));
+      const result = id ? await updateService(id, data) : await createService(data);
+      if (result) {
+        if (id) {
+          setServices(prev => prev?.map(item => item?._id === id ? { ...item, ...result } : item ));
+        } else {
+          setServices(prev => [result, ...(prev || [])]);
+        };
         showToast("บันทึกข้อมูลบริการสำเร็จ");
       } else {
         showToast("บันทึกข้อมูลบริการไม่สำเร็จ");
       };
-      return updated;
+      return result;
     } catch (error) {
       console.error(error.message);
       showToast("เกิดข้อผิดพลาด!");
@@ -252,7 +267,7 @@ export const MessageProvider = ({children}) => {
     <MessageContext.Provider value={{
       isDev, itemPerPage,
       adminNavMainActive, handleAdminNavMainToggle, handleAdminNavSidebarClose,
-      toast, showToast, 
+      toast, showToast, /*confirmModal, showConfirm, closeConfirm,*/
       users, setUsers, handleUserSave, handleUserDelete,
       products, setProducts, handleProductSave, handleProductDelete,
       orders, setOrders, handleOrderStatusChange, handleOrderSave, handleOrderDelete,
